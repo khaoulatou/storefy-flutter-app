@@ -1,68 +1,56 @@
 import 'package:dio/dio.dart' as Dio;
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shop_app/models/user.dart';
 import 'package:shop_app/services/dio.dart';
 
 class AuthServices extends ChangeNotifier {
   bool _isLoggedIn = false;
 
-  late User _user;
   late String _token;
+  late String _user;
   final storage = const FlutterSecureStorage();
 
   bool get authenticated => _isLoggedIn;
 
-  User get user => _user;
-
-  Future<bool> login(Map<String, String> credentials) async {
+  Future<dynamic> login(Map<String, String> credentials) async {
     print(credentials);
-    try {
-      Dio.Response response =
-          await dio().post('authentication', data: credentials);
-      String token = response.data.toString();
-      await tryToken(token: token);
-    } catch (e) {
-      print(e);
-    }
-    notifyListeners();
-    return _isLoggedIn;
+    Dio.Response response = await dio().post('login', data: credentials);
+    return response.data;
   }
 
-  Future<bool> reset({required String email}) async {
+  Future<dynamic> reset({required String email}) async {
     print(email);
-    try {
-      final response = await dio().post('forget', data: email);
-      // print(response.data.toString());
-    } catch (e) {
-      print(e);
-    }
-    return false;
+    await dio().post('forget', data: {'email': email});
   }
 
   Future<dynamic> tryToken({String? token}) async {
+    print(token);
     if (token == null) return;
     try {
       Dio.Response response = await dio().get('user',
           options: Dio.Options(headers: {'Authorization': 'Bearer $token'}));
       if (response.statusCode == 200) {
+        _user = response.data;
+
         _isLoggedIn = true;
-        notifyListeners();
-        _user = User.fromJson(response.data);
         notifyListeners();
         _token = token;
         notifyListeners();
+        storeUser(_user);
         storeToken(token);
-        print(_user);
       }
-    } catch (e) {
+    } on DioError catch (e) {
       print(e);
     }
-    return _isLoggedIn;
   }
 
   void storeToken(String token) async {
     await storage.write(key: "token", value: token);
+  }
+
+  void storeUser(String user) async {
+    await storage.write(key: "token", value: user);
   }
 
   Future<bool> logout() async {
@@ -73,6 +61,7 @@ class AuthServices extends ChangeNotifier {
       print(e);
     }
     deleteToken();
+    deleteUser();
     _isLoggedIn = false;
     notifyListeners();
     return _isLoggedIn;
@@ -80,5 +69,9 @@ class AuthServices extends ChangeNotifier {
 
   void deleteToken() async {
     storage.delete(key: 'token');
+  }
+
+  void deleteUser() async {
+    storage.delete(key: 'user');
   }
 }

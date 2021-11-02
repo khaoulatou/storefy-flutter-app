@@ -1,9 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/components/custom_surfix_icon.dart';
 import 'package:shop_app/components/default_button.dart';
 import 'package:shop_app/components/form_error.dart';
 import 'package:shop_app/components/no_account_text.dart';
+import 'package:shop_app/helper/keyboard.dart';
+import 'package:shop_app/screens/reset_success/reset_success_screen.dart';
 import 'package:shop_app/services/authServices.dart';
 import 'package:shop_app/size_config.dart';
 
@@ -51,6 +54,7 @@ class ForgotPassForm extends StatefulWidget {
 class _ForgotPassFormState extends State<ForgotPassForm> {
   final _formKey = GlobalKey<FormState>();
   List<String> errors = [];
+
   // String? email;
 
   final TextEditingController email = TextEditingController();
@@ -116,9 +120,21 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
               if (_formKey.currentState!.validate()) {
                 // Do what you want to do
                 // todo send email to backend
-                final response =
-                    await Provider.of<AuthServices>(context, listen: false)
-                        .reset(email: email.text);
+                String errorMessage = '';
+                try {
+                  errors.remove(errorMessage);
+                  await Provider.of<AuthServices>(context, listen: false)
+                      .reset(email: email.text);
+                  KeyboardUtil.hideKeyboard(context);
+                  Navigator.pushNamed(context, ResetSuccessScreen.routeName);
+                } on DioError catch (e) {
+                  if (e.response!.statusCode != 201) {
+                    errorMessage = e.response!.data['message'];
+                    setState(() {
+                      errors.add(errorMessage);
+                    });
+                  }
+                }
               }
             },
           ),

@@ -42,9 +42,8 @@ class _BodyState extends State<Body> {
 
   void readToken() async {
     final token = await storage.read(key: "token");
-    final variable = await Provider.of<AuthServices>(context, listen: false)
+    await Provider.of<AuthServices>(context, listen: false)
         .tryToken(token: token);
-    print(variable);
     if (Provider.of<AuthServices>(context, listen: false).authenticated) {
       Navigator.pushNamed(context, HomeScreen.routeName);
     }

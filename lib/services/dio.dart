@@ -5,5 +5,6 @@ Dio dio() {
   dio.options.baseUrl =
       'http://192.168.1.46:8000/api/v1/'; //put your address ip
   dio.options.headers['accept'] = 'application/json';
+
   return dio;
 }

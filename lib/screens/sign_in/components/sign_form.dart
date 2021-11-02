@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/components/custom_surfix_icon.dart';
@@ -30,7 +31,7 @@ class _SignFormState extends State<SignForm> {
   }
 
   bool? remember = false;
-  final List<String?> errors = [];
+  late final List<String?> errors = [];
 
   void addError({String? error}) {
     if (!errors.contains(error))
@@ -39,11 +40,10 @@ class _SignFormState extends State<SignForm> {
       });
   }
 
-  void removeError({String? error}) {
-    if (errors.contains(error))
-      setState(() {
-        errors.remove(error);
-      });
+  void removeError() {
+    setState(() {
+      errors.removeLast();
+    });
   }
 
   @override
@@ -87,15 +87,19 @@ class _SignFormState extends State<SignForm> {
               if (_formKey.currentState!.validate()) {
                 // if all are valid then go to success screen
                 // todo :send data to backend and store token in local storage
-                final response = await Provider.of<AuthServices>(context,
-                        listen: false)
-                    .login({'email': email.text, 'password': password.text});
-                KeyboardUtil.hideKeyboard(context);
-                if (response) {
-                  removeError(error: WrongCredentials);
+                try {
+                  final response = await Provider.of<AuthServices>(context,
+                          listen: false)
+                      .login({'email': email.text, 'password': password.text});
+                  String token = response['token'] as String;
+                  await Provider.of<AuthServices>(context, listen: false)
+                      .tryToken(token: token);
+                  KeyboardUtil.hideKeyboard(context);
                   Navigator.pushNamed(context, LoginSuccessScreen.routeName);
-                } else {
-                  addError(error: WrongCredentials);
+                } on DioError catch (e) {
+                  if (e.response!.statusCode != 201) {
+                    addError(error: e.response!.data['message']);
+                  }
                 }
               }
             },
@@ -111,9 +115,9 @@ class _SignFormState extends State<SignForm> {
       controller: password,
       onChanged: (value) {
         if (value.isNotEmpty) {
-          removeError(error: kPassNullError);
+          removeError();
         } else if (value.length >= 8) {
-          removeError(error: kShortPassError);
+          removeError();
         }
         return null;
       },
@@ -145,9 +149,9 @@ class _SignFormState extends State<SignForm> {
       controller: email,
       onChanged: (value) {
         if (value.isNotEmpty) {
-          removeError(error: kEmailNullError);
+          removeError();
         } else if (emailValidatorRegExp.hasMatch(value)) {
-          removeError(error: kInvalidEmailError);
+          removeError();
         }
         return null;
       },
