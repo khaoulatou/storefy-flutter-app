@@ -31,7 +31,7 @@ class AuthServices extends ChangeNotifier {
       Dio.Response response = await dio().get('user',
           options: Dio.Options(headers: {'Authorization': 'Bearer $token'}));
       if (response.statusCode == 200) {
-        _user = response.data;
+        _user = response.data.toString();
 
         _isLoggedIn = true;
         notifyListeners();
@@ -50,7 +50,7 @@ class AuthServices extends ChangeNotifier {
   }
 
   void storeUser(String user) async {
-    await storage.write(key: "token", value: user);
+    await storage.write(key: "user", value: user);
   }
 
   Future<bool> logout() async {

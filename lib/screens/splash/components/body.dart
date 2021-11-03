@@ -33,6 +33,10 @@ class _BodyState extends State<Body> {
       "image": "assets/images/splash_3.png"
     },
   ];
+
+  // -----------------------------------------------------------------------
+  // when we run application , The first thing is :
+  // 👇🏼 check if token is in local storage and validate token in backend
   final storage = const FlutterSecureStorage();
   @override
   void initState() {
@@ -49,6 +53,7 @@ class _BodyState extends State<Body> {
     }
   }
 
+// -----------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return SafeArea(

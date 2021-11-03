@@ -19,12 +19,17 @@ class SignForm extends StatefulWidget {
 
 class _SignFormState extends State<SignForm> {
   final _formKey = GlobalKey<FormState>();
+
+  //1. controllers for handling forms data
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
 
+  // 2. excuted function when open this route : 👇🏼
   @override
   void initState() {
     // TODO: implement initState
+
+    // THIS VALUE BELOW JUST FOR TEST DELETE IT IN PRODUCTION
     email.text = 'othmane@gmail.com';
     password.text = 'password';
     super.initState();
@@ -86,8 +91,9 @@ class _SignFormState extends State<SignForm> {
             press: () async {
               if (_formKey.currentState!.validate()) {
                 // if all are valid then go to success screen
-                // todo :send data to backend and store token in local storage
+                // TODO: send data to backend and store token in local storage
                 try {
+                  // 3.here we send data to backend using a login method that's exist in authServices.dart file .
                   final response = await Provider.of<AuthServices>(context,
                           listen: false)
                       .login({'email': email.text, 'password': password.text});
@@ -96,6 +102,7 @@ class _SignFormState extends State<SignForm> {
                       .tryToken(token: token);
                   KeyboardUtil.hideKeyboard(context);
                   Navigator.pushNamed(context, LoginSuccessScreen.routeName);
+                  // 4. if error happens we show error message below the form sign in (by addError widget).
                 } on DioError catch (e) {
                   if (e.response!.statusCode != 201) {
                     addError(error: e.response!.data['message']);

@@ -122,12 +122,15 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
                 // todo send email to backend
                 String errorMessage = '';
                 try {
+                  // 1. we delete all error message :
                   errors.remove(errorMessage);
+                  // 2. send request contain address email to backend :
                   await Provider.of<AuthServices>(context, listen: false)
                       .reset(email: email.text);
                   KeyboardUtil.hideKeyboard(context);
                   Navigator.pushNamed(context, ResetSuccessScreen.routeName);
                 } on DioError catch (e) {
+                  // 3. if error happens we show error message to user below the form.
                   if (e.response!.statusCode != 201) {
                     errorMessage = e.response!.data['message'];
                     setState(() {
